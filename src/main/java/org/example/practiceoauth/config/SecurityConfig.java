@@ -16,6 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests(authorizeRequests -> authorizeRequests.anyRequest().authenticated())
+                .logout(l -> l.logoutSuccessUrl("/login").permitAll())
                 .oauth2Login(Customizer.withDefaults());
         return http.build();
     }
