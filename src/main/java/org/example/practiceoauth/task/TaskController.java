@@ -7,6 +7,7 @@ import org.example.practiceoauth.task.dto.UpdateTaskDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,8 +25,9 @@ public class TaskController {
     }
 
     @GetMapping()
-    public ResponseEntity<BaseResponse<List<ResponseTaskDto>>> getTasks() {
-        List<ResponseTaskDto> tasks = taskService.getAllTasks();
+    public ResponseEntity<BaseResponse<List<ResponseTaskDto>>> getTasks(JwtAuthenticationToken principal) {
+        String userEmail = principal.getTokenAttributes().get("email").toString();
+        List<ResponseTaskDto> tasks = taskService.getTasksByEmail(userEmail);
         BaseResponse<List<ResponseTaskDto>> body = new BaseResponse<>(true, "OK", tasks);
         return ResponseEntity.ok(body);
     }
@@ -38,8 +40,9 @@ public class TaskController {
     }
 
     @PostMapping()
-    public ResponseEntity<BaseResponse<ResponseTaskDto>> createTask(@RequestBody  CreateTaskDto createTaskDto) {
-        ResponseTaskDto task = taskService.createTask(createTaskDto);
+    public ResponseEntity<BaseResponse<ResponseTaskDto>> createTask(@RequestBody  CreateTaskDto createTaskDto, JwtAuthenticationToken principal) {
+        String userEmail = principal.getTokenAttributes().get("email").toString();
+        ResponseTaskDto task = taskService.createTask(createTaskDto, userEmail);
         BaseResponse<ResponseTaskDto> body = new BaseResponse<>(true, "CREATED", task);
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }

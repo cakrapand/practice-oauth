@@ -6,11 +6,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.practiceoauth.user.User;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Entity
 @Data
@@ -22,6 +20,8 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    private String userEmail;
+
     private String name;
 
     private String description;
@@ -31,9 +31,4 @@ public class Task {
     private Date startDate;
 
     private Date endDate;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    @JsonIgnore
-    private User user;
 }

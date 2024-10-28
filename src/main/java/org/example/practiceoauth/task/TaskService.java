@@ -1,15 +1,12 @@
 package org.example.practiceoauth.task;
 
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import org.example.practiceoauth.task.dto.CreateTaskDto;
 import org.example.practiceoauth.task.dto.ResponseTaskDto;
 import org.example.practiceoauth.task.dto.UpdateTaskDto;
-import org.example.practiceoauth.user.User;
-import org.example.practiceoauth.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,19 +20,16 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
 
-    private final UserRepository userRepository;
-
     private final Validator validator;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, Validator validator) {
+    public TaskService(TaskRepository taskRepository, Validator validator) {
         this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
         this.validator = validator;
     }
 
-    public List<ResponseTaskDto> getAllTasks(){
-        return taskRepository.findAll().stream().map(this::toResponseTaskDto).toList();
+    public List<ResponseTaskDto> getTasksByEmail(String userEmail){
+        return taskRepository.findByUserEmail(userEmail).stream().map(this::toResponseTaskDto).toList();
     }
 
     public ResponseTaskDto getTaskById(String id){
@@ -48,21 +42,19 @@ public class TaskService {
         return toResponseTaskDto(task);
     }
 
-    public ResponseTaskDto createTask(CreateTaskDto createTaskDto) {
+    public ResponseTaskDto createTask(CreateTaskDto createTaskDto, String userEmail) {
         Set<ConstraintViolation<CreateTaskDto>> constraintViolations = validator.validate(createTaskDto);
         if (!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(constraintViolations);
         }
 
-        User user = userRepository.findAll().get(0);
-
         Task newTask = new Task();
         newTask.setName(createTaskDto.getName());
+        newTask.setUserEmail(userEmail);
         newTask.setDescription(createTaskDto.getDescription());
         newTask.setStatus(createTaskDto.getStatus());
         newTask.setStartDate(createTaskDto.getStartDate());
         newTask.setEndDate(createTaskDto.getEndDate());
-        newTask.setUser(user);
 
         return toResponseTaskDto(taskRepository.save(newTask));
     }
@@ -87,7 +79,7 @@ public class TaskService {
     private ResponseTaskDto toResponseTaskDto(Task task){
         return new ResponseTaskDto(
                 task.getId(),
-                task.getUser().getId().toString(),
+                task.getUserEmail(),
                 task.getName(),
                 task.getDescription(),
                 task.getStatus(),
